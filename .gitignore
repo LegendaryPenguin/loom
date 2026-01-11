@@ -1,0 +1,22 @@
+# Go — anchored to the root, because the bare name also matches the
+# cmd/loom-control-plane source directory and silently makes it unaddable.
+*.test
+/loom-control-plane
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Benchmark and experiment output
+bench/out/
+*.prof
+cpu.out
+mem.out
+
+# Local worker/control-plane state
+run/
+*.log
+
+.DS_Store
