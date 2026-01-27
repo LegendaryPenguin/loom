@@ -82,6 +82,19 @@ estimate. The control plane predicts cache growth to make admission decisions, b
 the worker is the only party that knows the truth, and a scheduler that trusts its
 own prediction over a direct report will drift until it overcommits.
 
+### `grow_request`
+
+```json
+{"type": "grow_request", "request_id": "r-7", "want_blocks": 4, "free_blocks": 112}
+```
+
+The sequence needs more cache than its reservation allows. This message exists
+because the rule below — a worker must not exceed `reserved_blocks` — is
+unenforceable without it: the only protocol-legal alternative is to preempt a
+sequence that the worker has free capacity to serve, which turns an
+under-estimate into preemption churn and hides the cause. The control plane
+answers with `grant` or lets the sequence be preempted.
+
 ### `first_token`, `token`, `completed`, `failed`, `preempted`
 
 ```json
@@ -89,7 +102,7 @@ own prediction over a direct report will drift until it overcommits.
 {"type": "token",       "request_id": "r-7", "token": " the", "generated": 12, "blocks": 3}
 {"type": "completed",   "request_id": "r-7", "generated": 48, "stop_reason": "eos"}
 {"type": "failed",      "request_id": "r-7", "error": "...", "retryable": true}
-{"type": "preempted",   "request_id": "r-7", "generated": 31}
+{"type": "preempted",   "request_id": "r-7", "generated": 31, "reason": "cache_exhausted"}
 ```
 
 `first_token` is separate from `token` because time-to-first-token and
@@ -102,6 +115,11 @@ distinguishes a transient worker problem (retry elsewhere) from a request that
 will fail identically everywhere (do not retry, and do not burn capacity proving
 it) — an unqualified failure forces the control plane to guess, and guessing
 "retryable" turns one bad request into an infinite loop.
+
+`reason` on `preempted` is one of `cache_exhausted` (the worker genuinely ran out
+of blocks — add workers) or `reservation_exceeded` (the control plane's estimate was
+too low — fix the estimator). Those call for opposite responses, so a single
+undifferentiated `preempted` leaves the operator unable to act on it.
 
 `preempted` reports that the worker evicted a running sequence to free cache. The
 victim's blocks are freed; the `generated` count it carries is kept, and the control
@@ -145,6 +163,14 @@ Must free the sequence's blocks promptly and report `completed` with
 `stop_reason: "cancelled"`. Prompt matters: a cancelled request whose memory is
 only reclaimed at natural completion defeats the purpose of cancelling.
 
+### `grant`
+
+```json
+{"type": "grant", "request_id": "r-7", "extra_blocks": 4}
+```
+
+Permission to exceed the original reservation. Sent in response to a `grow_request`.
+
 ### `drain`
 
 ```json
@@ -173,7 +199,10 @@ over-reservation; negative means the next admission may overcommit.
 invalidates every cache-capacity number the worker reported at registration.
 Switching models means draining and re-registering.
 
-**Backpressure is explicit.** A worker whose dispatch channel is full rejects the
-batch rather than buffering it. Buffering at the worker hides queue depth from the
-scheduler, which is the one component that needs to see it to make a decision. Buffering at the worker hides queue depth from the
+**Backpressure is explicit, and distinguishable from a fault.** A worker whose
+dispatch channel is full replies `{"type": "rejected", "request_id": "...",
+"reason": "backpressure"}` rather than buffering the batch or reporting a failure.
+Modelling overload as `failed(retryable=true)` would make it indistinguishable from
+a genuine worker fault, and those need to be counted separately — one means the
+fleet is too small, the other means a worker is sick. Buffering at the worker hides queue depth from the
 scheduler, which is the one component that needs to see it to make a decision.
