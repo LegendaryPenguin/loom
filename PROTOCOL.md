@@ -189,11 +189,20 @@ a no-op rather than starting a second copy — and the control plane must not as
 exactly-once, because it cannot have it over a socket that can drop.
 
 **Cache accounting is the worker's truth and the control plane's estimate.** The
-control plane plans with `expected_cache_blocks`, which is a prediction from
-prompt length and typical output length. It reconciles against
-`used_cache_blocks` on every heartbeat. The gap between the two is the system's
-most interesting metric: large and positive means capacity is being wasted on
+control plane plans with `expected_cache_blocks`, a prediction from prompt length
+and typical output length, and reconciles against `used_cache_blocks` on every
+heartbeat. A large positive gap means capacity is being wasted on
 over-reservation; negative means the next admission may overcommit.
+
+One caveat, measured rather than assumed: **this metric is structurally blind
+under peak reservation.** If the control plane reserves each request's worst case,
+the worker can never exceed the reservation, so drift is identically zero — it was
+zero across 39,808 reconciles in a run where 66% of all reserved blocks were never
+needed. A metric that reads perfect while two thirds of the cache is wasted is
+worse than no metric, because it invites the conclusion that nothing is wrong.
+Drift is only informative under expected reservation, where it came out unbiased
+(mean signed 0.00 blocks) with excursions of +108/−5. Waste needs its own
+measurement: reserved-but-never-touched blocks.
 
 **A worker serves one model.** Loading a second model into the same device
 invalidates every cache-capacity number the worker reported at registration.

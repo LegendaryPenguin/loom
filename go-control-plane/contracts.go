@@ -257,10 +257,29 @@ type ScaleDecision struct {
 
 // Autoscaler decides the worker count.
 //
-// Scaling on queue wait time rather than utilization is deliberate: a fully
-// utilized system with an empty queue is working perfectly and needs nothing,
-// while a half-utilized one with a growing queue is misconfigured. Utilization
-// cannot tell those apart.
+// Scaling on queue wait rather than utilization is deliberate: a half-utilized
+// system with a growing queue is misconfigured, and utilization alone cannot see
+// that.
+//
+// But queue wait alone is NOT sufficient, and the benchmarks disproved the
+// stronger claim this comment used to make. It asserted that "a fully utilized
+// system with an empty queue is working perfectly and needs nothing." Under
+// continuous batching that is false. With 96 concurrent slots across the fleet,
+// the workers behave like a processor-sharing server: requests are admitted
+// immediately and simply run slower, so at 90% offered load head-of-line wait
+// measures 2.8ms against a queue depth of roughly zero while per-request
+// throughput is collapsing. The queue only forms once slots are exhausted, which
+// makes it a cliff rather than a gradient — the signal arrives after the
+// degradation it was supposed to predict.
+//
+// A correct signal needs a slowdown term alongside queue wait: inter-token
+// latency, or tokens-per-second per sequence against its uncontended rate.
+// QueueWaitAutoscaler now carries the second of those — see SlowdownScaleUp — and
+// treats it as additive: queue wait still fires on its own, and either signal is
+// enough to buy capacity. The term's own weakness is named where it is
+// implemented: the uncontended baseline is learned as a high-water mark, so a
+// fleet that has been saturated since startup learns its degraded rate as normal
+// unless the baseline is configured.
 type Autoscaler interface {
 	// Evaluate is called periodically. Implementations must apply hysteresis —
 	// separate scale-up and scale-down thresholds plus a cooldown — or the worker
