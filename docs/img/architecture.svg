@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 720" width="980" height="720" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#8b9bb4"/>
+    </marker>
+    <marker id="ab" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#5eb0ef"/>
+    </marker>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#e06c62"/>
+    </marker>
+  </defs>
+  <rect width="980" height="720" fill="#14161b"/>
+
+  <text x="32" y="44" fill="#e6e9ef" font-size="21" font-weight="600">Loom</text>
+  <text x="32" y="68" fill="#8b9bb4" font-size="13">the hard problem is not the model — it is that a request's memory grows while it runs</text>
+
+  <!-- clients -->
+  <rect x="32" y="96" width="150" height="56" rx="6" fill="#1b1f27" stroke="#2f3643"/>
+  <text x="46" y="120" fill="#e6e9ef" font-size="12">clients</text>
+  <text x="46" y="138" fill="#6f7d94" font-size="10">multi-tenant, bursty</text>
+  <path d="M 182 124 L 232 124" stroke="#8b9bb4" stroke-width="1.6" marker-end="url(#a)"/>
+
+  <!-- ============ control plane (Go) ============ -->
+  <rect x="232" y="88" width="470" height="408" rx="8" fill="#171a21" stroke="#5a8ab0"/>
+  <text x="250" y="112" fill="#5eb0ef" font-size="13" font-weight="600">control plane · Go</text>
+  <text x="440" y="112" fill="#6f7d94" font-size="10">decides WHAT runs</text>
+
+  <!-- gateway -->
+  <rect x="250" y="124" width="434" height="46" rx="5" fill="#1e232c" stroke="#2f3643"/>
+  <text x="262" y="142" fill="#cdd6e3" font-size="11">gateway</text>
+  <text x="262" y="158" fill="#6f7d94" font-size="9.5">streaming responses, so time-to-first-token is visible to a client</text>
+
+  <path d="M 467 170 L 467 188" stroke="#8b9bb4" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- admission -->
+  <rect x="250" y="188" width="434" height="64" rx="5" fill="#1e232c" stroke="#3a6ea5"/>
+  <text x="262" y="206" fill="#5eb0ef" font-size="11" font-weight="600">admission control</text>
+  <text x="262" y="222" fill="#cdd6e3" font-size="9.5">accepted  ·  queued  ·  rejected</text>
+  <text x="262" y="238" fill="#6f7d94" font-size="9.5">three outcomes, because "no" means two different things: cannot fit now,</text>
+  <text x="262" y="250" fill="#6f7d94" font-size="9.5">versus cannot ever fit — the second is refused immediately, not queued</text>
+
+  <path d="M 467 252 L 467 270" stroke="#8b9bb4" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- queue + policy -->
+  <rect x="250" y="270" width="210" height="80" rx="5" fill="#1e232c" stroke="#2f3643"/>
+  <text x="262" y="288" fill="#cdd6e3" font-size="11">bounded queue</text>
+  <text x="262" y="304" fill="#6f7d94" font-size="9.5">an unbounded queue turns</text>
+  <text x="262" y="316" fill="#6f7d94" font-size="9.5">overload into unbounded</text>
+  <text x="262" y="328" fill="#6f7d94" font-size="9.5">latency, which is worse</text>
+  <text x="262" y="342" fill="#6f7d94" font-size="9.5">than refusing</text>
+
+  <rect x="474" y="270" width="210" height="80" rx="5" fill="#1e232c" stroke="#2f3643"/>
+  <text x="486" y="288" fill="#cdd6e3" font-size="11">policy</text>
+  <text x="486" y="304" fill="#6f7d94" font-size="9.5">FIFO · SJF+aging · fair-share</text>
+  <text x="486" y="320" fill="#6f7d94" font-size="9.5">quota is a separate mechanism:</text>
+  <text x="486" y="332" fill="#6f7d94" font-size="9.5">fairness says who goes first,</text>
+  <text x="486" y="344" fill="#6f7d94" font-size="9.5">quota says how much at most</text>
+
+  <path d="M 467 350 L 467 368" stroke="#8b9bb4" stroke-width="1.5" marker-end="url(#a)"/>
+
+  <!-- batcher -->
+  <rect x="250" y="368" width="434" height="60" rx="5" fill="#1e232c" stroke="#5a4a2a"/>
+  <text x="262" y="386" fill="#d8a657" font-size="11" font-weight="600">continuous batching</text>
+  <text x="262" y="402" fill="#8b9bb4" font-size="9.5">A static batch is held hostage by its longest member. Evict finished</text>
+  <text x="262" y="416" fill="#8b9bb4" font-size="9.5">sequences and admit queued ones into the freed slot on the next step.</text>
+
+  <!-- registry + autoscaler -->
+  <rect x="250" y="440" width="210" height="44" rx="5" fill="#232936" stroke="#2f3643"/>
+  <text x="262" y="458" fill="#cdd6e3" font-size="10.5">registry</text>
+  <text x="262" y="474" fill="#6f7d94" font-size="9.5">healthy → suspect → dead</text>
+
+  <rect x="474" y="440" width="210" height="44" rx="5" fill="#232936" stroke="#2f3643"/>
+  <text x="486" y="458" fill="#cdd6e3" font-size="10.5">autoscaler</text>
+  <text x="486" y="474" fill="#6f7d94" font-size="9.5">hysteresis + cold-start credit</text>
+
+  <!-- ============ protocol ============ -->
+  <path d="M 702 300 L 752 300" stroke="#5eb0ef" stroke-width="1.8" marker-end="url(#ab)"/>
+  <path d="M 752 330 L 702 330" stroke="#5eb0ef" stroke-width="1.8" marker-end="url(#ab)"/>
+  <text x="708" y="290" fill="#5eb0ef" font-size="9.5">dispatch</text>
+  <text x="708" y="348" fill="#5eb0ef" font-size="9.5">tokens, heartbeat</text>
+
+  <!-- ============ workers (Python) ============ -->
+  <rect x="752" y="88" width="196" height="408" rx="8" fill="#171a21" stroke="#b07a4a"/>
+  <text x="768" y="112" fill="#d8a657" font-size="13" font-weight="600">workers · Python</text>
+  <text x="768" y="130" fill="#6f7d94" font-size="10">run the forward pass</text>
+
+  <rect x="768" y="146" width="164" height="112" rx="5" fill="#1e232c" stroke="#2f3643"/>
+  <text x="780" y="164" fill="#cdd6e3" font-size="10.5">paged KV cache</text>
+  <text x="780" y="182" fill="#6f7d94" font-size="9.5">fixed blocks, not one run</text>
+  <text x="780" y="196" fill="#6f7d94" font-size="9.5">grows as the sequence does</text>
+  <text x="780" y="212" fill="#d8a657" font-size="9.5">contiguous must reserve</text>
+  <text x="780" y="224" fill="#d8a657" font-size="9.5">the worst case up front —</text>
+  <text x="780" y="236" fill="#d8a657" font-size="9.5">39% of its cache ends up</text>
+  <text x="780" y="248" fill="#d8a657" font-size="9.5">free but not adjacent</text>
+
+  <rect x="768" y="270" width="164" height="78" rx="5" fill="#1e232c" stroke="#2f3643"/>
+  <text x="780" y="288" fill="#cdd6e3" font-size="10.5">prefill  vs  decode</text>
+  <text x="780" y="306" fill="#6f7d94" font-size="9.5">prompt: one pass, linear,</text>
+  <text x="780" y="318" fill="#6f7d94" font-size="9.5">expensive once</text>
+  <text x="780" y="332" fill="#6f7d94" font-size="9.5">generation: one token at a</text>
+  <text x="780" y="344" fill="#6f7d94" font-size="9.5">time, holds memory forever</text>
+
+  <rect x="768" y="360" width="164" height="60" rx="5" fill="#232936" stroke="#2f3643"/>
+  <text x="780" y="378" fill="#cdd6e3" font-size="10.5">two engines</text>
+  <text x="780" y="394" fill="#6f7d94" font-size="9.5">simulated: seeded, for load</text>
+  <text x="780" y="408" fill="#6f7d94" font-size="9.5">transformers: real decoding</text>
+
+  <rect x="768" y="432" width="164" height="52" rx="5" fill="#232936" stroke="#3a6ea5"/>
+  <text x="780" y="450" fill="#5eb0ef" font-size="10">the worker is authoritative</text>
+  <text x="780" y="464" fill="#6f7d94" font-size="9.5">about cache use; the control</text>
+  <text x="780" y="476" fill="#6f7d94" font-size="9.5">plane only estimates it</text>
+
+  <!-- ============ what the measurements overturned ============ -->
+  <rect x="32" y="172" width="182" height="324" rx="8" fill="#171a21" stroke="#5a3030"/>
+  <text x="46" y="196" fill="#e06c62" font-size="12" font-weight="600">what measurement</text>
+  <text x="46" y="212" fill="#e06c62" font-size="12" font-weight="600">overturned</text>
+
+  <text x="46" y="238" fill="#cdd6e3" font-size="10">paged cache "3.43x"</text>
+  <text x="46" y="252" fill="#6f7d94" font-size="9.5">1.44x on a realistic mix;</text>
+  <text x="46" y="264" fill="#6f7d94" font-size="9.5">the ratio tracks how much</text>
+  <text x="46" y="276" fill="#6f7d94" font-size="9.5">clients over-declare</text>
+
+  <text x="46" y="300" fill="#cdd6e3" font-size="10">"SJF wins the tail"</text>
+  <text x="46" y="314" fill="#6f7d94" font-size="9.5">SJF lost p99 in 5 of 5;</text>
+  <text x="46" y="326" fill="#6f7d94" font-size="9.5">its starved requests ARE</text>
+  <text x="46" y="338" fill="#6f7d94" font-size="9.5">the p99</text>
+
+  <text x="46" y="362" fill="#cdd6e3" font-size="10">"empty queue = healthy"</text>
+  <text x="46" y="376" fill="#6f7d94" font-size="9.5">96 slots make the fleet</text>
+  <text x="46" y="388" fill="#6f7d94" font-size="9.5">processor-sharing: 2.8ms</text>
+  <text x="46" y="400" fill="#6f7d94" font-size="9.5">wait at depth 0 while</text>
+  <text x="46" y="412" fill="#6f7d94" font-size="9.5">throughput collapses</text>
+
+  <text x="46" y="436" fill="#cdd6e3" font-size="10">drift: "most diagnostic"</text>
+  <text x="46" y="450" fill="#6f7d94" font-size="9.5">structurally zero under</text>
+  <text x="46" y="462" fill="#6f7d94" font-size="9.5">peak reservation — 0 across</text>
+  <text x="46" y="474" fill="#6f7d94" font-size="9.5">39,808 reconciles while</text>
+  <text x="46" y="486" fill="#6f7d94" font-size="9.5">66% of blocks went unused</text>
+
+  <!-- ============ bottom: the one uncaveated win ============ -->
+  <rect x="32" y="516" width="916" height="88" rx="8" fill="#171a21" stroke="#3a6a3a"/>
+  <text x="48" y="540" fill="#7cb87c" font-size="12.5" font-weight="600">the result that needed no caveats</text>
+  <text x="48" y="564" fill="#cdd6e3" font-size="11">time to first token, 4 workers at 95% load:</text>
+  <text x="330" y="564" fill="#6f7d94" font-size="11">no batching 212.5 s</text>
+  <text x="488" y="564" fill="#6f7d94" font-size="11">static 38.7 s</text>
+  <text x="610" y="564" fill="#7cb87c" font-size="11" font-weight="600">continuous 46 ms</text>
+  <text x="48" y="586" fill="#8b9bb4" font-size="10">A 4,600x improvement over no batching, and end-to-end p99 of 27-29 s against static's 63-89 s with no overlap across five seeds.</text>
+
+  <!-- footer -->
+  <rect x="32" y="620" width="916" height="68" rx="8" fill="#171a21" stroke="#39404f"/>
+  <text x="48" y="644" fill="#8b9bb4" font-size="10.5">Everything time-dependent takes an injected clock, so a ten-minute experiment runs in under a second and is byte-identical from a seed.</text>
+  <text x="48" y="662" fill="#8b9bb4" font-size="10.5">The simulator uses the real cache implementations — accounting that exists only in the simulator proves nothing about the system.</text>
+  <text x="48" y="680" fill="#6f7d94" font-size="10.5">All 256 tests passed before the benchmarks ran. The benchmarks found six defects, including a sequence that could be running and queued at once.</text>
+</svg>
